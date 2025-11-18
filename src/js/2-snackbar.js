@@ -1,56 +1,51 @@
-function saveToLS(key, value) {
-  const formatedValue = JSON.stringify(value);
-  localStorage.setItem(key, formatedValue);
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
+
+const form = document.querySelector('.form');
+
+function showSuccess(delay) {
+  iziToast.error({
+    message: `✅ Fulfilled promise in ${delay}ms`,
+    position: 'topRight',
+    color: '#26bc24ff',
+    icon: false,
+    // iconUrl: '../img/cross.svg',
+    // iconText: 'A',
+    iconText: '✅',
+    progressBar: false,
+    messageColor: 'white',
+  });
 }
 
-function loadFromLS(key) {
-  const item = localStorage.getItem(key);
-  try {
-    const value = JSON.parse(item);
-    return value;
-  } catch {
-    return item;
-  }
+function showError(delay) {
+  iziToast.error({
+    message: `❌ Rejected promise in ${delay}ms`,
+    position: 'topRight',
+    color: '#e55353ff',
+    icon: false,
+    progressBar: false,
+    messageColor: 'white',
+  });
 }
 
-const storageKeyName = 'feedback-form-state';
-
-const formData = {
-  email: '',
-  message: '',
-};
-
-const form = document.querySelector('.feedback-form');
-
-document.addEventListener('DOMContentLoaded', event => {
-  const data = loadFromLS(storageKeyName);
-  if (!data) return;
-  formData.email = data.email || '';
-  formData.message = data.message || '';
-
-  form.elements.email.value = data.email || '';
-  form.elements.message.value = data.message || '';
-});
-
-form.addEventListener('input', event => {
-  const data = new FormData(form);
-  formData.email = data.get('email');
-  formData.message = data.get('message');
-
-  saveToLS(storageKeyName, formData);
-});
-
-form.addEventListener('submit', event => {
-  event.preventDefault();
-  if (!formData.email || !formData.message) {
-    alert('Fill please all fields');
-    return;
-  }
-
-  console.log(formData);
-
-  localStorage.removeItem(storageKeyName);
-  formData.email = '';
-  formData.message = '';
-  form.reset();
+form.addEventListener('submit', evt => {
+  evt.preventDefault();
+  const delay = Number(evt.target.elements.delay.value);
+  const state = evt.target.elements.state.value;
+  const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (state === 'fulfilled') {
+        resolve(delay);
+      } else {
+        reject(delay);
+      }
+    }, delay);
+  })
+    .then(ms => {
+      showSuccess(ms);
+    })
+    .catch(ms => {
+      showError(ms);
+    });
+  evt.target.reset();
 });
